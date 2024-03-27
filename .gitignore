@@ -1,4 +1,8 @@
-# Editor files
+# Editor files.
 /.idea
 *.iml
 .vscode
+
+# Local go files.
+/go/bin
+/go/pkg
