@@ -6,19 +6,66 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	"go.chromium.org/chromiumos/config/go/test/lab/api/btpeerd"
+	"go.chromium.org/chromiumos/platform/btpeerd/bluetooth/chameleond"
+	"go.chromium.org/chromiumos/platform/btpeerd/core"
+	"go.chromium.org/chromiumos/platform/btpeerd/core/exec"
+	"go.chromium.org/chromiumos/platform/btpeerd/core/linux"
+	"go.chromium.org/chromiumos/platform/btpeerd/core/raspberrypi"
 )
 
-type BtpeerManagementServiceServer struct{}
+type BtpeerManagementServiceServer struct {
+	runner exec.CmdRunner
+}
 
-func NewBtpeerManagementServiceServer() *BtpeerManagementServiceServer {
-	return &BtpeerManagementServiceServer{}
+func NewBtpeerManagementServiceServer(runner exec.CmdRunner) *BtpeerManagementServiceServer {
+	return &BtpeerManagementServiceServer{
+		runner: runner,
+	}
 }
 
 func (s *BtpeerManagementServiceServer) DeviceInfo(ctx context.Context, request *btpeerd.DeviceInfoRequest) (*btpeerd.DeviceInfoResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	resp := &btpeerd.DeviceInfoResponse{}
+
+	ethMac, err := linux.EthernetMacAddress(ctx, s.runner, raspberrypi.EthernetPortInterface)
+	if err != nil {
+		return nil, fmt.Errorf("device info: failed to get device ethernet mac address: %w", err)
+	}
+	resp.MacEth0 = ethMac
+
+	addr, err := linux.IPv4Address(ctx, s.runner, raspberrypi.EthernetPortInterface)
+	if err != nil {
+		return nil, fmt.Errorf("device info: failed to get device ethernet ipv4 address: %w", err)
+	}
+	resp.Ipv4Address = addr
+
+	osVersion, err := raspberrypi.OSVersion(ctx, s.runner)
+	if err != nil {
+		return nil, fmt.Errorf("device info: failed to get os version: %w", err)
+	}
+	resp.OsVersion = osVersion
+
+	chameleondCommit, err := chameleond.Commit(ctx, s.runner)
+	if err != nil {
+		return nil, fmt.Errorf("device info: failed to get chameleond commit: %w", err)
+	}
+	resp.ChameleondCommit = chameleondCommit
+
+	bluezVersion, err := linux.PackageVersion(ctx, s.runner, "bluez")
+	if err != nil {
+		return nil, fmt.Errorf("device info: failed to get bluez version: %w", err)
+	}
+	resp.BluezVersion = bluezVersion
+
+	btpeerdCommit, err := core.BtpeerdCommit(ctx, s.runner)
+	if err != nil {
+		return nil, fmt.Errorf("device info: failed to get btpeerd commit: %w", err)
+	}
+	resp.BtpeerdCommit = btpeerdCommit
+
+	return resp, nil
 }
 
 func (s *BtpeerManagementServiceServer) DeviceStatus(ctx context.Context, request *btpeerd.DeviceStatusRequest) (*btpeerd.DeviceStatusResponse, error) {

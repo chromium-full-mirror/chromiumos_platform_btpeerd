@@ -13,6 +13,7 @@ import (
 	"net"
 
 	"go.chromium.org/chromiumos/config/go/test/lab/api/btpeerd"
+	"go.chromium.org/chromiumos/platform/btpeerd/core/exec"
 	"google.golang.org/grpc"
 )
 
@@ -23,7 +24,8 @@ func RunGRPCServer(ctx context.Context, port int) error {
 	// Configure server.
 	var serverOpts []grpc.ServerOption
 	server := grpc.NewServer(serverOpts...)
-	btpeerd.RegisterBtpeerManagementServiceServer(server, NewBtpeerManagementServiceServer())
+	runner := &exec.SystemCmdRunner{}
+	btpeerd.RegisterBtpeerManagementServiceServer(server, NewBtpeerManagementServiceServer(runner))
 
 	// Start server, stopping it if the ctx expires.
 	listenAddr := fmt.Sprintf("localhost:%d", port)
