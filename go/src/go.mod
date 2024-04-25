@@ -1,6 +1,6 @@
-module go.chromiumos.org/chromiumos/platform/btpeerd
+module go.chromium.org/chromiumos/platform/btpeerd
 
-go 1.19
+go 1.22
 
 replace go.chromium.org/chromiumos/config/go v0.0.0 => ../../../../config/go/src/go.chromium.org/chromiumos/config/go
 
