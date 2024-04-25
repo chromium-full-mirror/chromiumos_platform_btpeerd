@@ -25,3 +25,12 @@ Run `scripts/build.sh` to build btpeerd. This will do the following:
 
 No files in this repository are used during btpeerd runtime, the `./go/bin/btpeerd`
 executable should be runnable directly to launch btpeerd.
+
+Note: Golang is only used during the compilation of the `btpeerd` executable.
+
+The `btpeerd` accepts the following optional command line options:
+* `--ListenPort=<port>` (default `8100`) Sets the port the gRPC server will listen on.
+* `--LogLevel=<DEBUG|INFO|WARN|ERROR>` (default `INFO`) Sets the log level of btpeerd.
+
+The `btpeerd` process will run continuously until a `SIGINT` signal (Ctrl+C) is
+received, upon which it will gracefully shut down the gRPC server and then close.
