@@ -8,11 +8,15 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"go.chromium.org/chromiumos/platform/btpeerd/core/exec"
 )
 
-const osReleaseFilePath = "/etc/os-release"
+const (
+	osReleaseFilePath = "/etc/os-release"
+	modelFilePath     = "/proc/device-tree/model"
+)
 
 // OSVersion returns the version of the Raspberry Pi OS as specified in the
 // "/etc/os-release" file as the PRETTY_NAME.
@@ -27,4 +31,18 @@ func OSVersion(ctx context.Context, runner exec.CmdRunner) (string, error) {
 		return "", fmt.Errorf("os version: failed parse PRETTY_NAME from %q file contents %q", osReleaseFilePath, string(osReleaseFileContents))
 	}
 	return match[1], nil
+}
+
+// ModelName returns the model name of this specific device, as defined in the
+// "/proc/device-tree/model" file on Raspberry Pis.
+func ModelName(ctx context.Context, runner exec.CmdRunner) (string, error) {
+	modelFileContents, err := runner.Output(ctx, exec.DefaultTimeout, "cat", modelFilePath)
+	if err != nil {
+		return "", fmt.Errorf("model name: failed to read contents of file %q: %w", modelFilePath, err)
+	}
+	model := strings.TrimSpace(string(modelFileContents))
+	if model == "" {
+		return "", fmt.Errorf("model name: empty model file %q", modelFilePath)
+	}
+	return model, nil
 }

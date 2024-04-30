@@ -65,6 +65,12 @@ func (s *BtpeerManagementServiceServer) DeviceInfo(ctx context.Context, request 
 	}
 	resp.BtpeerdCommit = btpeerdCommit
 
+	model, err := raspberrypi.ModelName(ctx, s.runner)
+	if err != nil {
+		return nil, fmt.Errorf("device info: failed to get model: %w", err)
+	}
+	resp.Model = model
+
 	return resp, nil
 }
 
