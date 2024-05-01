@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"go.chromium.org/chromiumos/platform/btpeerd/core/exec"
 )
@@ -20,7 +21,11 @@ func EthernetMacAddress(ctx context.Context, runner exec.CmdRunner, networkInter
 	if err != nil {
 		return "", fmt.Errorf("ethernet mac address: %w", err)
 	}
-	return string(addressFileContents), nil
+	macAddress := strings.TrimSpace(string(addressFileContents))
+	if macAddress == "" {
+		return "", fmt.Errorf("ethernet mac address: no mac address found in file %q", addressFilePath)
+	}
+	return macAddress, nil
 }
 
 // IPv4Address runs "ifconfig <networkInterfaceName>" and returns the first IPv4

@@ -41,6 +41,7 @@ func ModelName(ctx context.Context, runner exec.CmdRunner) (string, error) {
 		return "", fmt.Errorf("model name: failed to read contents of file %q: %w", modelFilePath, err)
 	}
 	model := strings.TrimSpace(string(modelFileContents))
+	model = strings.TrimSuffix(model, "\u0000")
 	if model == "" {
 		return "", fmt.Errorf("model name: empty model file %q", modelFilePath)
 	}

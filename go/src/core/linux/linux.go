@@ -7,6 +7,7 @@ package linux
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"go.chromium.org/chromiumos/platform/btpeerd/core/exec"
 )
@@ -14,9 +15,13 @@ import (
 // PackageVersion returns the version of system package installed on the device
 // using the dpkg-query command.
 func PackageVersion(ctx context.Context, runner exec.CmdRunner, packageName string) (string, error) {
-	version, err := runner.Output(ctx, exec.DefaultTimeout, "dpkg-query", "-Wf", `'${Version}\n'`, packageName)
+	dpkgQueryStdout, err := runner.Output(ctx, exec.DefaultTimeout, "dpkg-query", "-Wf", "${Version}", packageName)
 	if err != nil {
 		return "", fmt.Errorf("package version: failed to get version of system package %q with dpkg-query: %w", packageName, err)
 	}
-	return string(version), nil
+	version := strings.TrimSpace(string(dpkgQueryStdout))
+	if version == "" {
+		return "", fmt.Errorf("package version: got empty version of system package %q with dpkg-query", packageName)
+	}
+	return version, nil
 }
